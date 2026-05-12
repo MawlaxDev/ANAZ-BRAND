@@ -1,0 +1,59 @@
+{
+  "entities": {
+    "Order": {
+      "title": "Order",
+      "description": "An order in the ANAZ BRAND system",
+      "type": "object",
+      "properties": {
+        "orderNumber": { "type": "number" },
+        "customerName": { "type": "string" },
+        "customerPhone": { "type": "string" },
+        "location": { "type": "string" },
+        "date": { "type": "string" },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "description": { "type": "string" },
+              "pieces": { "type": "number" }
+            }
+          }
+        },
+        "price": { "type": "number" },
+        "deliveryPrice": { "type": "number" },
+        "profit": { "type": "number" },
+        "notes": { "type": "string" },
+        "status": { "type": "string", "enum": ["unpaid", "paid", "waiting", "cancelled"] },
+        "createdAt": { "type": "string" },
+        "createdBy": { "type": "string" }
+      },
+      "required": ["orderNumber", "customerName", "customerPhone", "status", "createdAt"]
+    },
+    "Expense": {
+      "title": "Expense",
+      "description": "An expense record",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "amount": { "type": "number" },
+        "date": { "type": "string" },
+        "notes": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "createdBy": { "type": "string" }
+      },
+      "required": ["name", "amount", "date", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Collection of orders"
+    },
+    "/expenses/{expenseId}": {
+      "schema": "Expense",
+      "description": "Collection of expenses"
+    }
+  }
+}
