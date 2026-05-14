@@ -6,6 +6,7 @@
 import React, { useState } from 'react';
 import { Lock, User as UserIcon } from 'lucide-react';
 import { User } from '../types';
+import Logo from './Logo';
 
 interface LoginProps {
   onLogin: (user: User) => void;
@@ -36,8 +37,8 @@ export default function Login({ onLogin }: LoginProps) {
       <div className="max-w-md w-full space-y-8 bg-[#14161C] p-10 rounded-2xl shadow-xl border border-slate-800">
         <div>
           <div className="flex justify-center mb-4">
-            <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center font-bold text-white text-2xl shadow-lg shadow-indigo-500/20">
-              O
+            <div className="w-20 h-20 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-2xl shadow-indigo-500/20 border-2 border-white/10">
+              <Logo size={48} className="text-white" />
             </div>
           </div>
           <h2 className="text-center text-3xl font-bold tracking-tight text-white uppercase tracking-widest">

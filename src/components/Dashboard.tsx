@@ -34,6 +34,7 @@ import { useExpenses } from '../hooks/useExpenses';
 import { cn, formatCurrency, exportOrdersToCSV, exportOrdersToJSON } from '../lib/utils';
 import OrderModal from './OrderModal';
 import ExpenseModal from './ExpenseModal';
+import Logo from './Logo';
 
 interface DashboardProps {
   user: User;
@@ -115,8 +116,8 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
   const expensesCount = expenses.length;
 
   const filteredProfit = activeTab === 'expenses' ? 0 : filteredOrders.reduce((sum, o) => sum + o.profit, 0);
-  const filteredGross = activeTab === 'expenses' ? 0 : filteredOrders.reduce((sum, o) => sum + (o.price + o.deliveryPrice), 0);
-  const filteredPendingCount = activeTab === 'expenses' ? 0 : filteredOrders.filter(o => o.status === 'unpaid').length;
+  const filteredUnitPriceTotal = activeTab === 'expenses' ? 0 : filteredOrders.reduce((sum, o) => sum + o.price, 0);
+  const filteredDeliveryTotal = activeTab === 'expenses' ? 0 : filteredOrders.reduce((sum, o) => sum + o.deliveryPrice, 0);
   const filteredExpensesTotal = activeTab === 'expenses' ? filteredExpenses.reduce((sum, e) => sum + e.amount, 0) : 0;
 
   const handleAddOrUpdate = (orderData: any) => {
@@ -171,7 +172,9 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
         isSidebarOpen ? "w-full md:w-64" : "w-0 opacity-0"
       )}>
         <div className="p-6 flex items-center gap-3">
-          <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-500/20">A</div>
+          <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/20 border border-indigo-400/30">
+            <Logo size={24} className="text-white" />
+          </div>
           <span className="text-xl font-bold text-white tracking-tight uppercase tracking-widest whitespace-nowrap">ANAZ BRAND</span>
         </div>
 
@@ -343,12 +346,12 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
             ) : (
               <div className="bg-[#14161C] border border-slate-800 p-5 rounded-xl flex flex-col relative overflow-hidden group">
                 <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                  <AlertCircle className="w-16 h-16 text-red-500" />
+                  <TrendingUp className="w-16 h-16 text-red-500" />
                 </div>
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.1em] mb-1">Pending Clearance</span>
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.1em] mb-1">Total in unit price</span>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-light text-red-400 italic">{filteredPendingCount}</span>
-                  <span className="text-[9px] text-slate-500 font-bold uppercase">Unpaid Orders</span>
+                  <span className="text-2xl font-light text-white italic">{formatCurrency(filteredUnitPriceTotal)}</span>
+                  <span className="text-[9px] text-slate-500 font-bold uppercase">Orders Value</span>
                 </div>
               </div>
             )}
@@ -357,10 +360,10 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
               <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                 <DollarSign className="w-16 h-16 text-indigo-400" />
               </div>
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.1em] mb-1">Total Gross</span>
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.1em] mb-1">Total of Delivery</span>
               <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-light text-white italic">{formatCurrency(filteredGross)}</span>
-                <span className="text-[9px] text-indigo-400 font-bold uppercase">Combined</span>
+                <span className="text-2xl font-light text-white italic">{formatCurrency(filteredDeliveryTotal)}</span>
+                <span className="text-[9px] text-indigo-400 font-bold uppercase">Logistics</span>
               </div>
             </div>
             <div className="bg-[#14161C] border border-slate-800 p-5 rounded-xl flex flex-col shadow-lg shadow-green-500/5 relative overflow-hidden group border-green-500/20">
@@ -524,7 +527,6 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                     <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-right">Unit Price</th>
                     <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-right">Delivery</th>
                     <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-right">Profit</th>
-                    <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-right">Total</th>
                     <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-center">Status</th>
                     <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] text-right">Ops</th>
                   </tr>
@@ -532,7 +534,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                 <tbody className="divide-y divide-slate-800">
                   {loading ? (
                     <tr>
-                      <td colSpan={9} className="px-6 py-20 text-center">
+                      <td colSpan={8} className="px-6 py-20 text-center">
                         <div className="flex flex-col items-center gap-4">
                           <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
                           <p className="text-xs font-bold uppercase tracking-widest text-slate-500">Syncing with Node...</p>
@@ -541,7 +543,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                     </tr>
                   ) : filteredOrders.length === 0 ? (
                     <tr>
-                      <td colSpan={9} className="px-6 py-20 text-center">
+                      <td colSpan={8} className="px-6 py-20 text-center">
                         <div className="flex flex-col items-center gap-2 opacity-30">
                           <AlertCircle className="w-12 h-12" />
                           <p className="text-sm font-medium uppercase tracking-[0.1em]">No records matching current filters</p>
@@ -577,10 +579,6 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                         <td className="px-6 py-5 text-right">
                           <p className="text-sm font-bold text-indigo-400">{formatCurrency(order.profit)}</p>
                           <p className="text-[10px] text-slate-600 font-bold uppercase tracking-widest">Profit</p>
-                        </td>
-                        <td className="px-6 py-5 text-right">
-                          <p className="text-sm font-bold text-white">{formatCurrency(order.price + order.deliveryPrice)}</p>
-                          <p className="text-[10px] text-indigo-400/50 font-bold uppercase tracking-widest">Total</p>
                         </td>
                         <td className="px-6 py-5">
                           <div className="flex justify-center">
