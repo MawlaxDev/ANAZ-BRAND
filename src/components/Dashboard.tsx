@@ -66,6 +66,13 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [paymentFilter, setPaymentFilter] = useState<'all' | 'paid' | 'unpaid'>('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const RECORDS_PER_PAGE = 50;
+
+  // Reset pagination when tab or filters change
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab, searchQuery, startDate, endDate, paymentFilter]);
 
   const filteredOrders = orders.filter(order => {
     // Tab filter
@@ -120,6 +127,10 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
   const filteredDeliveryTotal = activeTab === 'expenses' ? 0 : filteredOrders.reduce((sum, o) => sum + o.deliveryPrice, 0);
   const filteredPiecesTotal = activeTab === 'expenses' ? 0 : filteredOrders.reduce((sum, o) => sum + o.items.reduce((itemSum, item) => itemSum + (item.pieces || 0), 0), 0);
   const filteredExpensesTotal = activeTab === 'expenses' ? filteredExpenses.reduce((sum, e) => sum + e.amount, 0) : 0;
+
+  const paginatedOrders = filteredOrders.slice((currentPage - 1) * RECORDS_PER_PAGE, currentPage * RECORDS_PER_PAGE);
+  const paginatedExpenses = filteredExpenses.slice((currentPage - 1) * RECORDS_PER_PAGE, currentPage * RECORDS_PER_PAGE);
+  const totalPages = Math.ceil((activeTab === 'expenses' ? filteredExpenses.length : filteredOrders.length) / RECORDS_PER_PAGE);
 
   const handleAddOrUpdate = (orderData: any) => {
     if (editingOrder) {
@@ -486,7 +497,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                         </td>
                       </tr>
                     ) : (
-                      filteredExpenses.map((expense) => (
+                      paginatedExpenses.map((expense) => (
                         <tr key={expense.id} className="hover:bg-slate-800/20 transition-colors group">
                           <td className="px-6 py-5">
                             <p className="text-sm font-bold text-white tracking-wide">{expense.name}</p>
@@ -558,7 +569,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                       </td>
                     </tr>
                   ) : (
-                    filteredOrders.map((order) => (
+                    paginatedOrders.map((order) => (
                       <tr key={order.id} className="hover:bg-slate-800/20 transition-colors group">
                         <td className="px-6 py-5">
                           <span className="font-mono text-[10px] font-bold text-slate-600 block mb-1 uppercase">Order Code</span>
@@ -698,15 +709,42 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
           </div>
 
             {/* Pagination / Footer Info */}
-            <div className="mt-auto border-t border-slate-800 p-4 flex justify-between items-center bg-[#181A20] rounded-b-xl">
-              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest italic">Viewing Orders</p>
-              <div className="flex gap-1">
-                <button className="w-8 h-8 flex items-center justify-center rounded bg-slate-800 text-slate-600 cursor-not-allowed text-[10px]">PREV</button>
-                <button className="w-8 h-8 flex items-center justify-center rounded bg-indigo-600 text-white font-bold text-[10px]">1</button>
-                <button className="w-8 h-8 flex items-center justify-center rounded bg-slate-800 text-slate-400 text-[10px] hover:bg-slate-700">2</button>
-                <button className="w-8 h-8 flex items-center justify-center rounded bg-slate-800 text-slate-400 text-[10px] hover:bg-slate-700">NEXT</button>
+            {totalPages > 1 && (
+              <div className="mt-auto border-t border-slate-800 p-4 flex justify-between items-center bg-[#181A20] rounded-b-xl">
+                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest italic">
+                  Showing {(currentPage - 1) * RECORDS_PER_PAGE + 1} - {Math.min(currentPage * RECORDS_PER_PAGE, activeTab === 'expenses' ? filteredExpenses.length : filteredOrders.length)} of {activeTab === 'expenses' ? filteredExpenses.length : filteredOrders.length}
+                </p>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                    className={cn(
+                      "px-3 py-1.5 rounded text-[10px] font-bold uppercase tracking-widest transition-all",
+                      currentPage === 1 
+                        ? "bg-slate-800 text-slate-600 cursor-not-allowed" 
+                        : "bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white"
+                    )}
+                  >
+                    PREV
+                  </button>
+                  <div className="flex items-center px-4 bg-slate-900 border border-slate-800 rounded text-[10px] font-bold text-indigo-400">
+                    PAGE {currentPage} / {totalPages}
+                  </div>
+                  <button 
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages}
+                    className={cn(
+                      "px-3 py-1.5 rounded text-[10px] font-bold uppercase tracking-widest transition-all",
+                      currentPage === totalPages 
+                        ? "bg-slate-800 text-slate-600 cursor-not-allowed" 
+                        : "bg-indigo-600 text-white hover:bg-indigo-500 shadow-lg shadow-indigo-500/10"
+                    )}
+                  >
+                    NEXT
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </main>
@@ -789,6 +827,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
         onClose={closePortal} 
         onSubmit={handleAddOrUpdate}
         editingOrder={editingOrder}
+        allOrders={orders}
       />
 
       <ExpenseModal

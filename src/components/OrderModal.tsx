@@ -6,15 +6,17 @@
 import React, { useState } from 'react';
 import { X, Plus, Trash2 } from 'lucide-react';
 import { Order, OrderItem, OrderStatus } from '../types';
+import { formatCurrency } from '../lib/utils';
 
 interface OrderModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (order: any) => void;
   editingOrder?: Order | null;
+  allOrders?: Order[];
 }
 
-export default function OrderModal({ isOpen, onClose, onSubmit, editingOrder }: OrderModalProps) {
+export default function OrderModal({ isOpen, onClose, onSubmit, editingOrder, allOrders = [] }: OrderModalProps) {
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [location, setLocation] = useState('');
@@ -24,6 +26,10 @@ export default function OrderModal({ isOpen, onClose, onSubmit, editingOrder }: 
   const [deliveryPrice, setDeliveryPrice] = useState(0);
   const [profit, setProfit] = useState(0);
   const [notes, setNotes] = useState('');
+
+  const customerHistory = allOrders
+    .filter(o => o.customerPhone === customerPhone && o.id !== editingOrder?.id)
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const resetForm = () => {
     setCustomerName('');
@@ -247,6 +253,48 @@ export default function OrderModal({ isOpen, onClose, onSubmit, editingOrder }: 
                 placeholder="Additional Notes"
               />
             </div>
+
+            {/* Customer History Section */}
+            {customerHistory.length > 0 && (
+              <div className="mt-8 pt-6 border-t border-slate-800 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-[10px] font-bold text-indigo-400 uppercase tracking-[0.2em]">Customer Order History</h3>
+                  <span className="text-[9px] font-bold text-slate-600 uppercase tracking-widest bg-slate-800/50 px-2 py-0.5 rounded">
+                    {customerHistory.length} Previous Records Found
+                  </span>
+                </div>
+                <div className="space-y-2">
+                  {customerHistory.slice(0, 5).map((prevOrder) => (
+                    <div 
+                      key={prevOrder.id} 
+                      className="flex items-center justify-between p-3 bg-[#0F1115] border border-slate-800/50 rounded-xl hover:border-indigo-500/30 transition-all group"
+                    >
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-bold text-slate-300 group-hover:text-white transition-colors uppercase tracking-widest">
+                          #{prevOrder.orderNumber} — {prevOrder.date}
+                        </span>
+                        <span className="text-[9px] text-slate-600 font-bold uppercase truncate max-w-[200px]">
+                          {prevOrder.items.map(i => i.description).join(', ')}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs font-bold text-slate-400">{formatCurrency(prevOrder.price + prevOrder.deliveryPrice)}</span>
+                        {prevOrder.status === 'paid' ? (
+                          <span className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]" />
+                        ) : (
+                          <span className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]" />
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  {customerHistory.length > 5 && (
+                    <p className="text-[9px] text-slate-600 font-bold uppercase text-center italic mt-2">
+                      + {customerHistory.length - 5} more historical records exist in database
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="p-6 border-t border-slate-800 bg-[#0F1115] flex flex-wrap gap-3 items-center justify-end">
