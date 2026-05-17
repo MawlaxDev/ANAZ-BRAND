@@ -118,6 +118,7 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
   const filteredProfit = activeTab === 'expenses' ? 0 : filteredOrders.reduce((sum, o) => sum + o.profit, 0);
   const filteredUnitPriceTotal = activeTab === 'expenses' ? 0 : filteredOrders.reduce((sum, o) => sum + o.price, 0);
   const filteredDeliveryTotal = activeTab === 'expenses' ? 0 : filteredOrders.reduce((sum, o) => sum + o.deliveryPrice, 0);
+  const filteredPiecesTotal = activeTab === 'expenses' ? 0 : filteredOrders.reduce((sum, o) => sum + o.items.reduce((itemSum, item) => itemSum + (item.pieces || 0), 0), 0);
   const filteredExpensesTotal = activeTab === 'expenses' ? filteredExpenses.reduce((sum, e) => sum + e.amount, 0) : 0;
 
   const handleAddOrUpdate = (orderData: any) => {
@@ -315,19 +316,19 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
         <div className="flex-grow overflow-y-auto p-4 md:p-8 space-y-8 pb-12">
           {/* Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-[#14161C] border border-slate-800 p-5 rounded-xl flex flex-col relative overflow-hidden group">
+            <div className="bg-[#14161C] border border-slate-800 p-5 rounded-xl flex flex-col relative overflow-hidden group border-indigo-500/20">
               <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                {activeTab === 'expenses' ? <Wallet className="w-16 h-16 text-orange-500" /> : <ShoppingBag className="w-16 h-16 text-indigo-500" />}
+                <ShoppingBag className="w-16 h-16 text-indigo-400" />
               </div>
               <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.1em] mb-1">
-                {activeTab === 'expenses' ? 'Disbursements' : 'Unit Count'}
+                {activeTab === 'expenses' ? 'Disbursements' : 'Number of Orders'}
               </span>
               <div className="flex items-baseline gap-2">
                 <span className="text-2xl font-light text-white italic">
                   {activeTab === 'expenses' ? filteredExpenses.length : filteredOrders.length}
                 </span>
                 <span className="text-[9px] text-indigo-400 font-bold uppercase">
-                  {activeTab === 'expenses' ? 'Expenses Logged' : 'Orders Found'}
+                  {activeTab === 'expenses' ? 'Transactions' : 'Active Records'}
                 </span>
               </div>
             </div>
@@ -356,14 +357,20 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
               </div>
             )}
 
-            <div className="bg-[#14161C] border border-slate-800 p-5 rounded-xl flex flex-col relative overflow-hidden group border-indigo-500/20">
+            <div className="bg-[#14161C] border border-slate-800 p-5 rounded-xl flex flex-col relative overflow-hidden group">
               <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                <DollarSign className="w-16 h-16 text-indigo-400" />
+                {activeTab === 'expenses' ? <Wallet className="w-16 h-16 text-orange-500" /> : <ShoppingBag className="w-16 h-16 text-indigo-500" />}
               </div>
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.1em] mb-1">Total of Delivery</span>
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.1em] mb-1">
+                {activeTab === 'expenses' ? 'Disbursements' : 'Total of Package Manifest'}
+              </span>
               <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-light text-white italic">{formatCurrency(filteredDeliveryTotal)}</span>
-                <span className="text-[9px] text-indigo-400 font-bold uppercase">Logistics</span>
+                <span className="text-2xl font-light text-white italic">
+                  {activeTab === 'expenses' ? filteredExpenses.length : filteredPiecesTotal}
+                </span>
+                <span className="text-[9px] text-indigo-400 font-bold uppercase">
+                  {activeTab === 'expenses' ? 'Expenses Logged' : 'Total Pieces'}
+                </span>
               </div>
             </div>
             <div className="bg-[#14161C] border border-slate-800 p-5 rounded-xl flex flex-col shadow-lg shadow-green-500/5 relative overflow-hidden group border-green-500/20">
